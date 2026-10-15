@@ -3,6 +3,25 @@
 A small Debian Slim VM image for [exe.dev](https://exe.dev), with headless
 Chromium and automatic Shelley installation by the platform.
 
+## Published image
+
+The [v0.1.0 release](https://github.com/chillinPanda/exe-debian-slim-shelley-ready/releases/tag/v0.1.0)
+uses this tested Linux AMD64 image:
+
+```text
+ghcr.io/chillinpanda/exe-debian-slim-shelley-ready:build-38796576596-1
+```
+
+For VM creation, pin the exact content:
+
+```text
+ghcr.io/chillinpanda/exe-debian-slim-shelley-ready@sha256:de5a483e368fd7d6a32c707bd25e8435d8c5caf804cf60e53a1729529bd0b256
+```
+
+The image is public and requires no registry login. Follow
+[publishing and VM creation](docs/publishing.md#create-a-vm) to create a VM.
+See [release verification](docs/releases/v0.1.0.md) for measurements and limits.
+
 ## Why this image exists
 
 We want Shelley and its browser tools without a full development workstation

@@ -3,6 +3,9 @@
 These observations were collected on October 15, 2026, before repository cleanup.
 They describe the tested runtime design, not a released image or current CI result.
 
+The published image was subsequently verified on a fresh exe.dev VM. See
+[the v0.1.0 release verification](releases/v0.1.0.md) for that separate result.
+
 ## Result
 
 The selected image uses a trimmed chromedp browser bundle, a small Git package
