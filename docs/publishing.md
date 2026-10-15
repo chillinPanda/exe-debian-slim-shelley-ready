@@ -29,7 +29,9 @@ docker build --platform linux/amd64 --target git-sources \
 
 Do not refresh apt inputs between the runtime and source builds. Retain source
 artifacts and make them available alongside every distributed runtime build.
-CI uploads the exported sources and publishes a paired source image when asked.
+CI uploads the exported sources for seven days and publishes a paired source
+image when asked. The temporary tested-image transfer artifact expires after
+one day. Published registry images and paired sources have no automatic expiry.
 For public distribution, ensure both registry packages and sources are accessible.
 
 ## Create a VM

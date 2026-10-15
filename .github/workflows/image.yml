@@ -45,6 +45,7 @@ jobs:
         with:
           name: git-sources-${{ github.run_id }}-${{ github.run_attempt }}
           path: .artifacts/git-sources
+          retention-days: 7
           if-no-files-found: error
       - name: Native systemd boot test
         run: sh scripts/boot-test.sh shelley-ready:test
