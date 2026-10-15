@@ -1,0 +1,12 @@
+**
+!Dockerfile
+!LICENSE
+!NOTICE
+!vm/
+!vm/**
+!build/
+!build/git-minimal.sh
+!browser/
+!browser/**
+!licenses/
+!licenses/**

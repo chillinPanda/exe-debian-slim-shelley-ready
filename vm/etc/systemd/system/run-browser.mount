@@ -1,0 +1,12 @@
+[Unit]
+Description=Volatile executable cache for the compressed headless browser
+Before=shelley.service
+
+[Mount]
+What=tmpfs
+Where=/run/browser
+Type=tmpfs
+Options=rw,exec,nosuid,nodev,mode=0700,uid=1000,gid=1000,size=320M
+
+[Install]
+WantedBy=local-fs.target

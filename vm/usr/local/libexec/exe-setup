@@ -1,0 +1,8 @@
+#!/bin/sh
+# SPDX-License-Identifier: Apache-2.0
+set -eu
+
+# Setup scripts may be supplied again at boot. They must be idempotent.
+/bin/bash /exe.dev/setup
+# Only remove the script after success, retaining failures for inspection.
+sudo /bin/rm -f /exe.dev/setup

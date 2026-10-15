@@ -1,0 +1,25 @@
+# Adapted from boldsoftware/exeuntu; see NOTICE.
+[Unit]
+Description=Shelley coding agent
+BindsTo=shelley.socket
+After=shelley.socket run-browser.mount
+Requires=run-browser.mount
+ConditionPathExists=/usr/local/bin/shelley
+
+[Service]
+Type=exec
+User=exedev
+Group=exedev
+WorkingDirectory=/home/exedev
+ExecStart=/usr/local/bin/shelley -db /home/exedev/.config/shelley/shelley.db -config /exe.dev/shelley.json serve -systemd-activation -require-header X-Exedev-Userid
+Environment=HOME=/home/exedev
+Environment=USER=exedev
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+Restart=on-failure
+RestartSec=5
+KillMode=process
+TimeoutStopSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=shelley

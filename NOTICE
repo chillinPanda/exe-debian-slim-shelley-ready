@@ -1,0 +1,25 @@
+exe-debian-slim-shelley-ready
+Copyright 2026 Dinh Bao Dang
+
+The systemd and VM boot integration is adapted from boldsoftware/exeuntu:
+https://github.com/boldsoftware/exeuntu
+Reference revision: aae5f304415606257f88000778221f28b98a224e
+Copyright 2026 Bold Software, Inc.
+Licensed under the Apache License, Version 2.0.
+
+Changes include a Debian Slim base, a compressed chromedp headless Chromium bundle,
+smaller package selection, bounded journal storage, and revised boot/setup
+scripts and service configuration. Shelley is installed separately by exe.dev.
+
+Debian and the packages included in the built image retain their own licenses.
+Package copyright information remains under /usr/share/doc in the image.
+
+The browser bundle is supplied by chromedp/docker-headless-shell.
+Its build recipe is Copyright (c) 2016-2026 Kenneth Shaw, MIT licensed.
+Chromium and its bundled components retain their upstream licenses.
+The Chromium BSD license and chromedp MIT license are included under licenses/.
+
+Git is compiled from the Debian source package without source changes, with
+size-oriented build options. Git and its components retain their licenses,
+including GPL-2.0. The image preserves its copyright and source metadata;
+the git-sources build target exports corresponding source archives and recipe.

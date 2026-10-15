@@ -1,0 +1,17 @@
+[Unit]
+Description=Run the exe.dev setup script when supplied
+ConditionPathExists=/exe.dev/setup
+After=network.target
+
+[Service]
+Type=oneshot
+User=exedev
+Group=exedev
+WorkingDirectory=/home/exedev
+ExecStart=/usr/local/libexec/exe-setup
+Environment=HOME=/home/exedev
+Environment=USER=exedev
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+[Install]
+WantedBy=multi-user.target

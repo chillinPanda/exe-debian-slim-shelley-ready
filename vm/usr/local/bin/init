@@ -1,0 +1,24 @@
+#!/bin/sh
+# SPDX-License-Identifier: Apache-2.0
+# Adapted from boldsoftware/exeuntu/init-wrapper.sh; see NOTICE.
+set -eu
+
+if [ "$$" -ne 1 ]; then
+    echo "This init wrapper must run as PID 1." >&2
+    exit 1
+fi
+
+mkdir -p /run/systemd
+if [ ! -f /sys/fs/cgroup/cgroup.controllers ]; then
+    mount -t cgroup2 none /sys/fs/cgroup
+fi
+if mountpoint -q /proc/sys; then
+    mount -o remount,rw /proc/sys
+fi
+for setting in /proc/sys/net/ipv4/ip_unprivileged_port_start /proc/sys/net/ipv6/ip_unprivileged_port_start; do
+    if [ -w "$setting" ]; then
+        printf '0\n' > "$setting"
+    fi
+done
+
+exec /sbin/init

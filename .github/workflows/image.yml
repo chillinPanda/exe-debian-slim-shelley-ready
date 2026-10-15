@@ -1,0 +1,96 @@
+name: Image
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the tested image to GHCR (main only)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check shell scripts
+        run: |
+          for script in build/*.sh scripts/*.sh browser/launcher.sh vm/usr/local/bin/init vm/usr/local/libexec/exe-setup; do
+            sh -n "$script"
+          done
+          shellcheck build/*.sh scripts/*.sh browser/launcher.sh vm/usr/local/bin/init vm/usr/local/libexec/exe-setup
+      - name: Build
+        run: docker build --pull --platform linux/amd64 -t shelley-ready:test .
+      - name: Smoke test
+        run: sh scripts/smoke-test.sh shelley-ready:test
+      - name: Core Git test
+        run: docker run --rm --platform linux/amd64 --network none --user exedev --entrypoint /bin/sh -i shelley-ready:test < scripts/git-test.sh
+      - name: Export corresponding Git sources
+        run: |
+          docker build --platform linux/amd64 --target git-sources --output type=local,dest=.artifacts/git-sources .
+          docker build --platform linux/amd64 --target git-sources -t shelley-ready:git-sources .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: git-sources-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .artifacts/git-sources
+          if-no-files-found: error
+      - name: Native systemd boot test
+        run: sh scripts/boot-test.sh shelley-ready:test
+      - name: Measure
+        run: sh scripts/measure.sh shelley-ready:test
+      - name: Save tested images for publication
+        if: github.event_name == 'workflow_dispatch' && inputs.publish && github.ref == 'refs/heads/main'
+        run: docker save shelley-ready:test shelley-ready:git-sources | gzip > .artifacts/images.tar.gz
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'workflow_dispatch' && inputs.publish && github.ref == 'refs/heads/main'
+        with:
+          name: tested-images
+          path: .artifacts/images.tar.gz
+          compression-level: 0
+          retention-days: 1
+          overwrite: true
+          if-no-files-found: error
+
+  publish:
+    needs: check
+    if: github.event_name == 'workflow_dispatch' && inputs.publish && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: tested-images
+      - name: Publish tested runtime and corresponding sources
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          docker load -i images.tar.gz
+          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          build_id="build-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          docker tag shelley-ready:git-sources "$image:git-sources-$build_id"
+          docker tag shelley-ready:test "$image:$build_id"
+          docker tag shelley-ready:test "$image:latest"
+          docker push "$image:git-sources-$build_id"
+          docker push "$image:$build_id"
+          docker push "$image:latest"
+          {
+            echo "Runtime: $image:$build_id"
+            echo "Git sources: $image:git-sources-$build_id"
+            docker image inspect --format '{{json .RepoDigests}}' "$image:$build_id"
+          } >> "$GITHUB_STEP_SUMMARY"
