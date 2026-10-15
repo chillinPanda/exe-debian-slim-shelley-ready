@@ -3,6 +3,25 @@
 A small Debian Slim VM image for [exe.dev](https://exe.dev), with headless
 Chromium and automatic Shelley installation by the platform.
 
+## Published image
+
+The [v0.1.0 release](https://github.com/chillinPanda/exe-debian-slim-shelley-ready/releases/tag/v0.1.0)
+uses this tested Linux AMD64 image:
+
+```text
+ghcr.io/chillinpanda/exe-debian-slim-shelley-ready:build-38796576596-1
+```
+
+For VM creation, pin the exact content:
+
+```text
+ghcr.io/chillinpanda/exe-debian-slim-shelley-ready@sha256:de5a483e368fd7d6a32c707bd25e8435d8c5caf804cf60e53a1729529bd0b256
+```
+
+The image is public and requires no registry login. Follow
+[publishing and VM creation](docs/publishing.md#create-a-vm) to create a VM.
+See [release verification](docs/releases/v0.1.0.md) for measurements and limits.
+
 ## Why this image exists
 
 We want Shelley and its browser tools without a full development workstation
@@ -49,10 +68,16 @@ This limit is not preallocated at boot. Browser processes need additional RAM.
 Resources and profiles remain on disk. Conversations, installed tools, logs,
 and application data increase disk usage over time.
 
-In the original experiment, the fresh VM used about **331 MiB including Shelley**,
-compared with about **841 MiB** for the Debian-browser baseline. These are
-individual filesystem observations, not guaranteed sizes for future builds.
-See [measurements and verification](docs/measurements.md).
+A fresh v0.1.0 VM uses about **331 MiB according to `df`**, including Shelley
+but excluding ext4 filesystem overhead. On the tested 10 GiB disk, filesystem
+metadata adds about **261 MiB**, bringing total usage to about **0.58 GiB**.
+The exe.dev dashboard displays **0.6 GiB**.
+
+The original Debian-browser baseline used about **841 MiB according to `df`**.
+That comparison also excludes filesystem overhead. These are individual
+observations, not guaranteed sizes for future builds. Conversations, logs, and
+platform-installed Shelley versions can change the results. See
+[measurement definitions and verification](docs/measurements.md#measurement-definitions-and-filesystem-overhead).
 
 ## Build and check
 

@@ -50,4 +50,9 @@ the pinned images; they do not automatically advance either digest.
 
 Keep browser graphics resources and bundled attribution intact. Run the full
 checks after dependency changes. Compare actual `df -B1 /` readings on fresh
-VMs; local `du` and Docker-reported sizes measure different things.
+VMs. Also record virtual disk capacity, filesystem free space, and the exe.dev
+API/dashboard reading so total occupation including filesystem overhead is
+visible. Keep timestamps with samples; platform metrics and SSH readings may
+not be simultaneous. Local `du` and Docker-reported sizes measure different
+things. Use the [measurement definitions](measurements.md#measurement-definitions-and-filesystem-overhead)
+when reporting or comparing results.

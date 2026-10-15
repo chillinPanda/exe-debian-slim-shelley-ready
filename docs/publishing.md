@@ -37,12 +37,12 @@ For public distribution, ensure both registry packages and sources are accessibl
 ## Create a VM
 
 Publish and make the image accessible before using the exe.dev HTTPS API.
-The example assumes an existing local API token. Keep it on your own machine.
-Replace the image digest and choose an available VM name:
+Replace `exe1.AAA` with your API token, replace the image digest, and choose
+an available VM name:
 
 ```sh
 curl -fsS https://exe.dev/exec \
-  -H "Authorization: Bearer $(cat ~/.config/exe.dev/token)" \
+  -H "Authorization: Bearer exe1.AAA" \
   --data-raw 'new --name=shelley-slim --cpu=1 --memory=2GB --disk=10GB --image=ghcr.io/chillinpanda/exe-debian-slim-shelley-ready@sha256:<digest>'
 ```
 

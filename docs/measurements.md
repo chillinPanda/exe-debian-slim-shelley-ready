@@ -3,21 +3,69 @@
 These observations were collected on October 15, 2026, before repository cleanup.
 They describe the tested runtime design, not a released image or current CI result.
 
+The published image was subsequently verified on a fresh exe.dev VM. See
+[the v0.1.0 release verification](releases/v0.1.0.md) for that separate result.
+
 ## Result
 
 The selected image uses a trimmed chromedp browser bundle, a small Git package
 built from Debian sources, and a compressed browser executable unpacked into RAM.
 All application/runtime tests below passed on a real AMD64 exe.dev VM.
 
-- Fresh VM disk usage, including Shelley: **346918912 bytes (330.85 MiB)**.
+- Fresh VM `df` used space, including Shelley: **346918912 bytes (330.85 MiB)**.
 - After browser/LLM tests: **348241920 bytes (332.11 MiB)**.
 - After two restarts and concurrent browser tests: **360005632 bytes (343.33 MiB)**.
 - Original Debian-browser VM checkpoint: **881795072 bytes (840.95 MiB)**.
-- Final test-machine reduction versus that checkpoint: **59.2%**.
+- Final test-machine reduction in `df` used space versus that checkpoint: **59.2%**.
 
 These are `df -B1 /` filesystem readings, not compressed registry sizes. Logs,
 SQLite WAL files, screenshots, and test history explain growth during testing.
 The browser executable cache is measured separately because it is a RAM tmpfs.
+
+## Measurement definitions and filesystem overhead
+
+The historical measurements above exclude ext4 filesystem overhead. They measure
+image/runtime contents, including the platform-installed Shelley, rather than
+the total occupation shown by the exe.dev dashboard.
+
+- `du -x` sums disk blocks allocated to files and directories on the root
+  filesystem. It does not count internal filesystem metadata such as inode
+  tables or the journal. It also excludes the browser's RAM tmpfs.
+- On the tested ext4 filesystem, `df -B1 /` reports used data blocks. Its total
+  filesystem size already excludes ext4 overhead, so subtracting `df` free space
+  from `df` total space does not recover that overhead.
+- Total virtual disk capacity minus filesystem free space includes that overhead.
+  This is consistent with the larger usage shown by exe.dev. It is distinct
+  from physical backing-storage allocation and compressed registry image size.
+
+On October 16, 2026, a fresh VM using the published v0.1.0 digest, 1 CPU,
+2 GiB RAM, and a 10 GiB disk produced these readings before browser use:
+
+| Measurement | Bytes | MiB |
+| --- | ---: | ---: |
+| `df -B1 /` used space | 347033600 | 330.96 |
+| `du -x -B1 -s /` file/directory blocks | 347000832 | 330.93 |
+| ext4 overhead from the filesystem superblock | 273395712 | 260.73 |
+| Total disk occupation (`df` used space plus ext4 overhead) | 620429312 | 591.69 |
+
+Total occupation was **0.578 GiB**, displayed as **0.6 GiB** in the dashboard.
+A separate exe.dev API sample reported `fs_used_gb=0.612020224` (612020224
+bytes, or 0.570 GiB). The API sample and SSH readings were not simultaneous;
+both round to the observed dashboard value. The API field uses decimal GB,
+while the dashboard label uses GiB.
+
+The ext4 superblock recorded 655360 inodes of 256 bytes each: **160 MiB** of
+inode tables. The remaining **100.73 MiB** of overhead covers the journal and
+other filesystem structures. These measurements apply to this filesystem
+configuration; overhead can change with disk size and formatting options.
+
+Another **512 MiB** was reserved for root. Reserved blocks are still free and
+are not part of the used-space total above. They explain why `df` available
+space for ordinary users is smaller than filesystem free space.
+
+The historical **59.2%** reduction applies only to the documented `df` used-space
+checkpoints. No matching baseline measurement including filesystem overhead was
+recorded, so it is not a measured reduction in total disk occupation.
 
 ## Compared configurations
 
@@ -25,7 +73,7 @@ All live candidates used 1 CPU, 2 GiB RAM, a 10 GiB disk, Debian 13 Slim, and th
 exe.dev-installed Shelley version `0.1382.946224212`. The API requires at least
 10 GiB disk capacity; allocated capacity is different from space actually used.
 
-| Configuration | Local filesystem before Shelley, KiB (`du -xsk /`) | Observed VM used bytes | VM used MiB |
+| Configuration | Local filesystem before Shelley, KiB (`du -xsk /`) | VM `df` used bytes, excluding overhead | VM `df` used MiB |
 | --- | ---: | ---: | ---: |
 | Original Debian `chromium-headless-shell`, distro Git | 782496 | 881795072 | 840.95 |
 | Full chromedp bundle, distro Git | 522436 | 607019008 | 578.90 |
